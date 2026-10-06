@@ -1,0 +1,2811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MD MOSHIUR RAHMAN - Police Clearance Verify</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+
+<meta name="theme-color" content="#2563eb">
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f1f5f9;
+    color:#0f172a;
+}
+
+.container{
+    width:95%;
+    max-width:900px;
+    margin:30px auto;
+}
+
+.header{
+    background:#2563eb;
+    color:white;
+    padding:25px;
+    border-radius:18px;
+    text-align:center;
+    box-shadow:0 8px 25px rgba(0,0,0,.12);
+}
+
+.header h1{
+    margin:0;
+    font-size:27px;
+}
+
+.header p{
+    margin:8px 0 0;
+    opacity:.9;
+}
+
+.card{
+    background:white;
+    margin-top:20px;
+    padding:22px;
+    border-radius:18px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.card h2{
+    margin-top:0;
+    font-size:20px;
+}
+
+.input-row{
+    display:flex;
+    gap:8px;
+}
+
+input{
+    flex:1;
+    padding:13px;
+    border:1px solid #cbd5e1;
+    border-radius:10px;
+    font-size:15px;
+    outline:none;
+}
+
+input:focus{
+    border-color:#2563eb;
+}
+
+button{
+    border:0;
+    border-radius:10px;
+    padding:12px 16px;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+    background:#2563eb;
+    color:white;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.paste{
+    background:#475569;
+}
+
+.open{
+    background:#16a34a;
+}
+
+.copy{
+    background:#7c3aed;
+}
+
+.camera{
+    background:#0891b2;
+}
+
+.stop{
+    background:#dc2626;
+}
+
+.status{
+    margin-top:15px;
+    padding:13px;
+    border-radius:10px;
+    font-weight:bold;
+    display:none;
+}
+
+.official{
+    background:#dcfce7;
+    color:#166534;
+    display:block;
+}
+
+.fake{
+    background:#fee2e2;
+    color:#991b1b;
+    display:block;
+}
+
+.invalid{
+    background:#ffedd5;
+    color:#9a3412;
+    display:block;
+}
+
+.loading{
+    background:#dbeafe;
+    color:#1e40af;
+    display:block;
+}
+
+.details{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+.details th,
+.details td{
+    border:1px solid #e2e8f0;
+    padding:10px;
+    text-align:left;
+    vertical-align:top;
+}
+
+.details th{
+    width:35%;
+    background:#f8fafc;
+    font-weight:bold;
+}
+
+.notice{
+    background:#fff7ed;
+    border-left:5px solid #f97316;
+    padding:15px;
+    border-radius:10px;
+    margin-top:15px;
+    line-height:1.6;
+}
+
+.whatsapp{
+    background:#16a34a;
+    display:block;
+    text-align:center;
+    text-decoration:none;
+    color:white;
+    padding:14px;
+    border-radius:10px;
+    font-weight:bold;
+    margin-top:15px;
+}
+
+.small{
+    color:#64748b;
+    font-size:13px;
+    margin-top:8px;
+}
+
+.validity-box{
+    margin-top:15px;
+    padding:15px;
+    border-radius:12px;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+}
+
+.validity-title{
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.valid{
+    background:#dcfce7;
+    color:#166534;
+    border:1px solid #86efac;
+}
+
+.expired{
+    background:#fee2e2;
+    color:#991b1b;
+    border:1px solid #fca5a5;
+}
+
+.passport-preview{
+    width:100%;
+    max-height:400px;
+    object-fit:contain;
+    display:none;
+    margin-top:15px;
+    border-radius:12px;
+    border:1px solid #e2e8f0;
+    background:#f8fafc;
+}
+
+.camera-row{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+    flex-wrap:wrap;
+}
+
+.file-label{
+    display:inline-block;
+    background:#2563eb;
+    color:white;
+    padding:12px 16px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.ocr-box{
+    margin-top:15px;
+    padding:15px;
+    border-radius:12px;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+}
+
+.compare-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+.compare-table th,
+.compare-table td{
+    border:1px solid #e2e8f0;
+    padding:9px;
+    text-align:left;
+}
+
+.compare-table th{
+    background:#f8fafc;
+}
+
+.match-cell{
+    background:#dcfce7;
+    color:#166534;
+    font-weight:bold;
+}
+
+.mismatch-cell{
+    background:#fee2e2;
+    color:#991b1b;
+    font-weight:bold;
+}
+
+.review-cell{
+    background:#ffedd5;
+    color:#9a3412;
+    font-weight:bold;
+}
+
+#qrReader{
+    width:100%;
+    margin-top:15px;
+}
+
+.qr-box{
+    margin-top:15px;
+}
+
+.hidden{
+    display:none;
+}
+
+@media(max-width:600px){
+
+    .container{
+        width:94%;
+        margin:15px auto;
+    }
+
+    .header h1{
+        font-size:22px;
+    }
+
+    .input-row{
+        flex-direction:column;
+    }
+
+    button{
+        width:100%;
+    }
+
+    .details th{
+        width:42%;
+    }
+
+    .camera-row{
+        flex-direction:column;
+    }
+
+    .file-label{
+        text-align:center;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>MD MOSHIUR RAHMAN</h1>
+        <p>Police Clearance Verify</p>
+    </div>
+
+
+    <!-- SEARCH REFERENCE -->
+    <div class="card">
+
+        <h2>🔎 Search Reference Number</h2>
+
+        <div class="input-row">
+
+            <input
+                id="ref_number"
+                placeholder="Enter Reference Number"
+            >
+
+            <button onclick="searchReference()">
+                Search
+            </button>
+
+            <button
+                class="paste"
+                onclick="pasteReference()"
+            >
+                Paste
+            </button>
+
+        </div>
+
+        <div id="searchStatus" class="status"></div>
+
+    </div>
+
+
+    <!-- VERIFY LINK -->
+    <div class="card">
+
+        <h2>🔗 Verify Police Clearance Link</h2>
+
+        <div class="input-row">
+
+            <input
+                id="verification_link"
+                placeholder="Paste Police Clearance verification link"
+            >
+
+            <button onclick="checkLink()">
+                Check Link
+            </button>
+
+            <button
+                class="paste"
+                onclick="pasteLink()"
+            >
+                Paste Link
+            </button>
+
+        </div>
+
+        <div id="linkStatus" class="status"></div>
+
+        <div style="margin-top:15px;">
+
+            <button
+                class="open"
+                onclick="openOfficial()"
+            >
+                🌐 Open Official Website
+            </button>
+
+            <button
+                class="copy"
+                onclick="copyID()"
+            >
+                📋 Copy ID
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- PCC INFORMATION -->
+    <div class="card">
+
+        <h2>📄 Police Clearance Information</h2>
+
+        <div id="dataStatus" class="status"></div>
+
+        <table class="details">
+
+            <!-- REF NO REMOVED -->
+
+            <tr>
+                <th>PCC Issue Date</th>
+                <td id="dated">—</td>
+            </tr>
+
+            <tr>
+                <th>Applicant Name</th>
+                <td id="applicantName">—</td>
+            </tr>
+
+            <tr>
+                <th>Father Name</th>
+                <td id="fatherName">—</td>
+            </tr>
+
+            <tr>
+                <th>P/O</th>
+                <td id="po">—</td>
+            </tr>
+
+            <tr>
+                <th>Post Code</th>
+                <td id="postCode">—</td>
+            </tr>
+
+            <tr>
+                <th>P/S</th>
+                <td id="ps">—</td>
+            </tr>
+
+            <tr>
+                <th>District</th>
+                <td id="district">—</td>
+            </tr>
+
+            <tr>
+                <th>Passport No</th>
+                <td id="passportNo">—</td>
+            </tr>
+
+        </table>
+
+
+        <!-- VALIDITY -->
+
+        <div
+            id="validityBox"
+            class="validity-box"
+        >
+
+            <div class="validity-title">
+                📅 PCC Validity
+            </div>
+
+            <div id="validityText">
+                PCC Issue Date load হলে validity দেখাবে।
+            </div>
+
+        </div>
+
+
+        <button
+            class="copy"
+            style="margin-top:15px;"
+            onclick="copyDetails()"
+        >
+            📋 Copy Details
+        </button>
+
+    </div>
+
+
+    <!-- PASSPORT OCR -->
+
+    <div class="card">
+
+        <h2>🛂 Passport Verification</h2>
+
+        <div class="small">
+            Passport image upload করুন অথবা phone camera দিয়ে passport-এর ছবি তুলুন।
+        </div>
+
+
+        <div class="camera-row">
+
+            <label class="file-label">
+                📁 Upload Passport
+                <input
+                    id="passportFile"
+                    type="file"
+                    accept="image/*"
+                    style="display:none;"
+                    onchange="handlePassportFile(event)"
+                >
+            </label>
+
+
+            <label class="file-label" style="background:#0891b2;">
+                📷 Camera
+                <input
+                    id="passportCamera"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    style="display:none;"
+                    onchange="handlePassportFile(event)"
+                >
+            </label>
+
+        </div>
+
+
+        <img
+            id="passportPreview"
+            class="passport-preview"
+            alt="Passport Preview"
+        >
+
+
+        <div
+            id="ocrStatus"
+            class="status"
+        ></div>
+
+
+        <!-- ONLY CLEAN PASSPORT DATA -->
+        <div
+            id="passportCleanData"
+            class="ocr-box hidden"
+        >
+
+            <h3 style="margin-top:0;">
+                🛂 Passport Information
+            </h3>
+
+            <table class="details">
+
+                <tr>
+                    <th>Applicant Name</th>
+                    <td id="passportApplicant">—</td>
+                </tr>
+
+                <tr>
+                    <th>Father Name</th>
+                    <td id="passportFather">—</td>
+                </tr>
+
+                <tr>
+                    <th>P/O</th>
+                    <td id="passportPO">—</td>
+                </tr>
+
+                <tr>
+                    <th>Post Code</th>
+                    <td id="passportPostCode">—</td>
+                </tr>
+
+                <tr>
+                    <th>P/S</th>
+                    <td id="passportPS">—</td>
+                </tr>
+
+                <tr>
+                    <th>District</th>
+                    <td id="passportDistrict">—</td>
+                </tr>
+
+                <tr>
+                    <th>Passport No</th>
+                    <td id="passportNumber">—</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+
+        <!-- COMPARISON -->
+
+        <div
+            id="comparisonBox"
+            class="ocr-box hidden"
+        >
+
+            <h3 style="margin-top:0;">
+                🔍 PCC & Passport Comparison
+            </h3>
+
+            <div id="comparisonStatus"></div>
+
+            <table class="compare-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Field</th>
+                        <th>PCC</th>
+                        <th>Passport</th>
+                        <th>Status</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="comparisonBody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- QR SCANNER -->
+
+    <div class="card">
+
+        <h2>📷 Scan PCC QR Code</h2>
+
+        <div class="small">
+            Phone camera দিয়ে Police Clearance QR Code scan করুন।
+        </div>
+
+        <div class="camera-row">
+
+            <button
+                onclick="startQRScanner()"
+                class="camera"
+            >
+                📷 Start QR Scanner
+            </button>
+
+            <button
+                onclick="stopQRScanner()"
+                class="stop"
+            >
+                ⛔ Stop Scanner
+            </button>
+
+        </div>
+
+        <div
+            id="qrReader"
+            class="qr-box"
+        ></div>
+
+    </div>
+
+
+    <!-- NOTICE -->
+
+    <div class="card">
+
+        <div class="notice">
+
+            <b>Important Notice</b>
+
+            <br><br>
+
+            এই টুলের মাধ্যমে আপনার দেওয়া verification link-টি
+            অফিসিয়াল Police Clearance website-এর কিনা যাচাই করা হয়।
+
+            <br><br>
+
+            Official Domain:
+            <b>pcc.police.gov.bd</b>
+
+            <br><br>
+
+            শুধুমাত্র অফিসিয়াল ওয়েবসাইটের লিংক সঠিক হলেই
+            ডকুমেন্টটি আসল—এটি নিশ্চিতভাবে বলা যায় না।
+            অনুগ্রহ করে ডকুমেন্টের তথ্যগুলো ম্যানুয়ালি মিলিয়ে যাচাই করুন।
+
+        </div>
+
+    </div>
+
+
+    <!-- WHATSAPP -->
+
+    <div class="card">
+
+        <a
+            class="whatsapp"
+            target="_blank"
+            href="https://web.whatsapp.com/send?phone=8801313289497&text=Assalamu%20Alaikum%2C%20Police%20Clearance%20Verification%20niye%20help%20chai."
+        >
+            💬 WhatsApp Help
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- LIBRARIES -->
+
+<script
+    src="https://unpkg.com/html5-qrcode"
+    type="text/javascript">
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js">
+</script>
+
+
+<script>
+
+let currentID = "";
+let passportImage = null;
+let qrScanner = null;
+
+
+/* =========================================
+   SEARCH REFERENCE
+========================================= */
+
+function searchReference(){
+
+    const ref =
+        document.getElementById("ref_number").value.trim();
+
+    if(!ref){
+
+        alert("Reference Number দিন");
+
+        return;
+    }
+
+    const url =
+        "https://pcc.police.gov.bd/ords/f?p=500:50::::RP:P50_TOKEN_ID:" +
+        encodeURIComponent(ref);
+
+    window.open(url,"_blank");
+}
+
+
+async function pasteReference(){
+
+    try{
+
+        const text =
+            await navigator.clipboard.readText();
+
+        document.getElementById("ref_number").value =
+            text.trim();
+
+        if(text.trim()){
+            searchReference();
+        }
+
+    }catch(e){
+
+        alert("Clipboard permission দেওয়া হয়নি");
+
+    }
+}
+
+
+/* =========================================
+   VERIFY LINK
+========================================= */
+
+function checkLink(){
+
+    const input =
+        document.getElementById("verification_link");
+
+    const status =
+        document.getElementById("linkStatus");
+
+    const link =
+        input.value.trim();
+
+    status.className="status";
+
+    if(!link){
+
+        status.textContent="Please enter a link";
+
+        status.classList.add("invalid");
+
+        return;
+    }
+
+
+    let url;
+
+    try{
+
+        url = new URL(link);
+
+    }catch(e){
+
+        status.textContent="⚠️ INVALID LINK";
+
+        status.classList.add("invalid");
+
+        return;
+    }
+
+
+    let hostname =
+        url.hostname.toLowerCase();
+
+
+    if(hostname.startsWith("www.")){
+        hostname =
+            hostname.substring(4);
+    }
+
+
+    if(hostname === "pcc.police.gov.bd"){
+
+        status.textContent =
+            "✅ OFFICIAL WEBSITE";
+
+        status.classList.add("official");
+
+
+        const token =
+            url.searchParams.get("P50_TOKEN_ID");
+
+
+        if(token){
+
+            currentID = token;
+
+        }else{
+
+            const match =
+                link.match(
+                    /P50_TOKEN_ID[:%3A=]+([A-Za-z0-9_-]+)/i
+                );
+
+            if(match){
+                currentID = match[1];
+            }
+        }
+
+
+        if(currentID){
+
+            document.getElementById("ref_number").value =
+                currentID;
+
+            loadOfficialData(link);
+
+        }
+
+    }else{
+
+        status.textContent =
+            "❌ FAKE WEBSITE";
+
+        status.classList.add("fake");
+
+    }
+
+}
+
+
+async function pasteLink(){
+
+    try{
+
+        const text =
+            await navigator.clipboard.readText();
+
+        document.getElementById("verification_link").value =
+            text.trim();
+
+        if(text.trim()){
+            checkLink();
+        }
+
+    }catch(e){
+
+        alert("Clipboard permission দেওয়া হয়নি");
+
+    }
+}
+
+
+/* =========================================
+   OPEN OFFICIAL
+========================================= */
+
+function openOfficial(){
+
+    window.open(
+        "https://pcc.police.gov.bd",
+        "_blank"
+    );
+
+}
+
+
+/* =========================================
+   COPY ID
+========================================= */
+
+async function copyID(){
+
+    if(!currentID){
+
+        alert(
+            "আগে একটি official verification link check করুন"
+        );
+
+        return;
+    }
+
+    await navigator.clipboard.writeText(currentID);
+
+    alert("Reference ID copied");
+
+}
+
+
+/* =========================================
+   LOAD PCC DATA
+========================================= */
+
+async function loadOfficialData(link){
+
+    const status =
+        document.getElementById("dataStatus");
+
+    status.className =
+        "status loading";
+
+    status.textContent =
+        "⏳ Official PCC website থেকে তথ্য আনা হচ্ছে...";
+
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/pcc?url=" +
+                encodeURIComponent(link)
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if(!result.success){
+
+            throw new Error(
+                result.message ||
+                "Unable to load data"
+            );
+
+        }
+
+
+        const data =
+            result.data;
+
+
+        /*
+         * Ref No intentionally NOT displayed.
+         */
+
+        setValue(
+            "dated",
+            data.dated
+        );
+
+        setValue(
+            "applicantName",
+            data.applicantName
+        );
+
+        setValue(
+            "fatherName",
+            data.fatherName
+        );
+
+        setValue(
+            "po",
+            data.po
+        );
+
+        setValue(
+            "postCode",
+            data.postCode
+        );
+
+        setValue(
+            "ps",
+            data.ps
+        );
+
+        setValue(
+            "district",
+            data.district
+        );
+
+        setValue(
+            "passportNo",
+            data.passportNo
+        );
+
+
+        calculateValidity(
+            data.dated
+        );
+
+
+        status.className =
+            "status official";
+
+        status.textContent =
+            "✅ Official PCC page থেকে information loaded";
+
+
+        /*
+         * If passport already uploaded,
+         * compare again after PCC loads.
+         */
+
+        if(passportImage){
+
+            comparePassportWithPCC();
+
+        }
+
+
+    }catch(error){
+
+        console.error(error);
+
+        status.className =
+            "status invalid";
+
+        status.textContent =
+            "⚠️ Official PCC page থেকে information automatically পড়া যায়নি। নিচের Open Official Website button দিয়ে সরাসরি যাচাই করুন.";
+
+    }
+
+}
+
+
+/* =========================================
+   SET VALUE
+========================================= */
+
+function setValue(id,value){
+
+    const element =
+        document.getElementById(id);
+
+    if(!element)return;
+
+    const text =
+        String(value || "").trim();
+
+    element.textContent =
+        text ? text : "—";
+
+}
+
+
+/* =========================================
+   PCC VALIDITY
+========================================= */
+
+function calculateValidity(dated){
+
+    const box =
+        document.getElementById("validityBox");
+
+    const text =
+        document.getElementById("validityText");
+
+
+    const issueDate =
+        parsePCCDate(dated);
+
+
+    if(!issueDate){
+
+        box.className =
+            "validity-box";
+
+        text.textContent =
+            "PCC Issue Date পাওয়া যায়নি।";
+
+        return;
+    }
+
+
+    const expiry =
+        new Date(issueDate);
+
+    expiry.setFullYear(
+        expiry.getFullYear()+1
+    );
+
+
+    const today =
+        new Date();
+
+    today.setHours(
+        0,0,0,0
+    );
+
+    expiry.setHours(
+        0,0,0,0
+    );
+
+
+    const diff =
+        expiry.getTime() -
+        today.getTime();
+
+
+    const days =
+        Math.ceil(
+            diff /
+            (1000*60*60*24)
+        );
+
+
+    const expiryText =
+        formatDate(expiry);
+
+
+    if(days >= 0){
+
+        box.className =
+            "validity-box valid";
+
+        text.innerHTML =
+            "✅ <b>Valid</b><br>" +
+            "PCC Issue Date: " +
+            formatDate(issueDate) +
+            "<br>" +
+            "Expiry Date: " +
+            expiryText +
+            "<br>" +
+            "Remaining Days: <b>" +
+            days +
+            "</b>";
+
+    }else{
+
+        const expiredDays =
+            Math.abs(days);
+
+        box.className =
+            "validity-box expired";
+
+        text.innerHTML =
+            "❌ <b>Expired</b><br>" +
+            "PCC Issue Date: " +
+            formatDate(issueDate) +
+            "<br>" +
+            "Expiry Date: " +
+            expiryText +
+            "<br>" +
+            "Expired Days: <b>" +
+            expiredDays +
+            "</b>";
+
+    }
+
+}
+
+
+function parsePCCDate(value){
+
+    if(!value)return null;
+
+
+    const match =
+        value.trim().match(
+            /^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/
+        );
+
+
+    if(!match)return null;
+
+
+    const months = {
+
+        JAN:0,
+        FEB:1,
+        MAR:2,
+        APR:3,
+        MAY:4,
+        JUN:5,
+        JUL:6,
+        AUG:7,
+        SEP:8,
+        OCT:9,
+        NOV:10,
+        DEC:11
+
+    };
+
+
+    const day =
+        parseInt(match[1]);
+
+    const month =
+        months[match[2].toUpperCase()];
+
+    const year =
+        parseInt(match[3]);
+
+
+    if(month === undefined){
+        return null;
+    }
+
+
+    return new Date(
+        year,
+        month,
+        day
+    );
+
+}
+
+
+function formatDate(date){
+
+    const day =
+        String(
+            date.getDate()
+        ).padStart(2,"0");
+
+
+    const month =
+        String(
+            date.getMonth()+1
+        ).padStart(2,"0");
+
+
+    const year =
+        date.getFullYear();
+
+
+    return (
+        day +
+        "-" +
+        month +
+        "-" +
+        year
+    );
+
+}
+
+
+/* =========================================
+   PASSPORT FILE
+========================================= */
+
+function handlePassportFile(event){
+
+    const file =
+        event.target.files[0];
+
+
+    if(!file)return;
+
+
+    passportImage =
+        file;
+
+
+    const preview =
+        document.getElementById(
+            "passportPreview"
+        );
+
+
+    preview.src =
+        URL.createObjectURL(file);
+
+    preview.style.display =
+        "block";
+
+
+    document.getElementById(
+        "passportCleanData"
+    ).classList.add("hidden");
+
+
+    document.getElementById(
+        "comparisonBox"
+    ).classList.add("hidden");
+
+
+    readPassport(file);
+
+}
+
+
+/* =========================================
+   IMAGE ROTATION
+========================================= */
+
+function rotateImageFile(
+    file,
+    degrees
+){
+
+    return new Promise(
+        (resolve,reject)=>{
+
+            const reader =
+                new FileReader();
+
+
+            reader.onload =
+                function(){
+
+                    const img =
+                        new Image();
+
+
+                    img.onload =
+                        function(){
+
+                            const canvas =
+                                document.createElement(
+                                    "canvas"
+                                );
+
+
+                            const rad =
+                                degrees *
+                                Math.PI /
+                                180;
+
+
+                            const sin =
+                                Math.abs(
+                                    Math.sin(rad)
+                                );
+
+                            const cos =
+                                Math.abs(
+                                    Math.cos(rad)
+                                );
+
+
+                            canvas.width =
+                                Math.round(
+                                    img.width*cos +
+                                    img.height*sin
+                                );
+
+
+                            canvas.height =
+                                Math.round(
+                                    img.width*sin +
+                                    img.height*cos
+                                );
+
+
+                            const ctx =
+                                canvas.getContext(
+                                    "2d"
+                                );
+
+
+                            ctx.translate(
+                                canvas.width/2,
+                                canvas.height/2
+                            );
+
+
+                            ctx.rotate(rad);
+
+
+                            ctx.drawImage(
+                                img,
+                                -img.width/2,
+                                -img.height/2
+                            );
+
+
+                            canvas.toBlob(
+                                blob => {
+
+                                    if(blob){
+                                        resolve(blob);
+                                    }else{
+                                        reject(
+                                            new Error(
+                                                "Image rotation failed"
+                                            )
+                                        );
+                                    }
+
+                                },
+                                "image/jpeg",
+                                0.95
+                            );
+
+                        };
+
+
+                    img.onerror =
+                        reject;
+
+
+                    img.src =
+                        reader.result;
+
+                };
+
+
+            reader.onerror =
+                reject;
+
+
+            reader.readAsDataURL(file);
+
+        }
+    );
+
+}
+
+
+/* =========================================
+   OCR ONE IMAGE
+========================================= */
+
+async function ocrBlob(blob){
+
+    const result =
+        await Tesseract.recognize(
+            blob,
+            "eng",
+            {
+                logger:function(info){
+
+                    if(
+                        info.status ===
+                        "recognizing text"
+                    ){
+
+                        const percent =
+                            Math.round(
+                                (info.progress || 0) *
+                                100
+                            );
+
+                        const status =
+                            document.getElementById(
+                                "ocrStatus"
+                            );
+
+                        status.className =
+                            "status loading";
+
+                        status.textContent =
+                            "⏳ Passport OCR চলছে... " +
+                            percent +
+                            "%";
+
+                    }
+
+                }
+            }
+        );
+
+
+    return result.data.text || "";
+
+}
+
+
+/* =========================================
+   READ PASSPORT
+   0 / 180 first.
+   If needed 90 / 270.
+========================================= */
+
+async function readPassport(file){
+
+    const status =
+        document.getElementById(
+            "ocrStatus"
+        );
+
+
+    status.className =
+        "status loading";
+
+    status.textContent =
+        "⏳ Passport image OCR শুরু হচ্ছে...";
+
+
+    try{
+
+        let texts = [];
+
+
+        /*
+         * Normal image
+         */
+
+        const text0 =
+            await ocrBlob(file);
+
+        texts.push(text0);
+
+
+        /*
+         * 180 degree
+         * This is important for the
+         * upside-down passport number
+         * below the barcode.
+         */
+
+        const rotated180 =
+            await rotateImageFile(
+                file,
+                180
+            );
+
+
+        const text180 =
+            await ocrBlob(
+                rotated180
+            );
+
+        texts.push(text180);
+
+
+        /*
+         * First combine 0 + 180
+         */
+
+        let combinedText =
+            texts.join("\n");
+
+
+        /*
+         * Check whether useful data exists.
+         */
+
+        const pccPassport =
+            getPCCValue(
+                "passportNo"
+            );
+
+
+        let passportNumber =
+            extractPassportNumber(
+                combinedText,
+                pccPassport
+            );
+
+
+        let address =
+            extractAddress(
+                combinedText
+            );
+
+
+        /*
+         * If passport number/address not found,
+         * try 90 and 270 degrees.
+         */
+
+        if(
+            !passportNumber ||
+            !address
+        ){
+
+            const rotated90 =
+                await rotateImageFile(
+                    file,
+                    90
+                );
+
+            const text90 =
+                await ocrBlob(
+                    rotated90
+                );
+
+            texts.push(text90);
+
+
+            const rotated270 =
+                await rotateImageFile(
+                    file,
+                    270
+                );
+
+            const text270 =
+                await ocrBlob(
+                    rotated270
+                );
+
+            texts.push(text270);
+
+
+            combinedText =
+                texts.join("\n");
+
+
+            passportNumber =
+                extractPassportNumber(
+                    combinedText,
+                    pccPassport
+                );
+
+
+            address =
+                extractAddress(
+                    combinedText
+                );
+
+        }
+
+
+        /*
+         * Extract clean fields only.
+         */
+
+        const applicantName =
+            extractApplicantName(
+                combinedText
+            );
+
+
+        const fatherName =
+            extractFatherName(
+                combinedText
+            );
+
+
+        const addressData =
+            parseAddress(
+                address
+            );
+
+
+        /*
+         * Display only useful passport data.
+         */
+
+        setValue(
+            "passportApplicant",
+            applicantName
+        );
+
+        setValue(
+            "passportFather",
+            fatherName
+        );
+
+        setValue(
+            "passportPO",
+            addressData.po
+        );
+
+        setValue(
+            "passportPostCode",
+            addressData.postCode
+        );
+
+        setValue(
+            "passportPS",
+            addressData.ps
+        );
+
+        setValue(
+            "passportDistrict",
+            addressData.district
+        );
+
+        setValue(
+            "passportNumber",
+            passportNumber
+        );
+
+
+        document.getElementById(
+            "passportCleanData"
+        ).classList.remove("hidden");
+
+
+        status.className =
+            "status official";
+
+        status.textContent =
+            "✅ Passport image OCR complete";
+
+
+        /*
+         * Compare with PCC
+         */
+
+        comparePassportWithPCC();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        status.className =
+            "status invalid";
+
+        status.textContent =
+            "❌ Passport OCR failed. পরিষ্কার ছবি দিয়ে আবার চেষ্টা করুন।";
+
+    }
+
+}
+
+
+/* =========================================
+   PCC VALUE
+========================================= */
+
+function getPCCValue(id){
+
+    const element =
+        document.getElementById(id);
+
+    if(!element)return "";
+
+    const value =
+        element.textContent.trim();
+
+    if(value === "—"){
+        return "";
+    }
+
+    return value;
+
+}
+
+
+/* =========================================
+   NORMALIZE
+========================================= */
+
+function normalizeText(value){
+
+    return String(value || "")
+        .toUpperCase()
+        .replace(/[.,;:]/g," ")
+        .replace(/\s+/g," ")
+        .trim();
+
+}
+
+
+function compactText(value){
+
+    return String(value || "")
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g,"");
+
+}
+
+
+/* =========================================
+   PASSPORT NUMBER
+   Strong method:
+   First search exact PCC passport no
+   inside all OCR orientations.
+========================================= */
+
+function extractPassportNumber(
+    text,
+    pccPassport
+){
+
+    const compact =
+        compactText(text);
+
+
+    const pccCompact =
+        compactText(pccPassport);
+
+
+    /*
+     * Exact PCC passport number found
+     */
+
+    if(
+        pccCompact &&
+        compact.includes(pccCompact)
+    ){
+
+        return pccPassport.trim();
+
+    }
+
+
+    /*
+     * Search normal passport formats
+     */
+
+    const lines =
+        text
+        .toUpperCase()
+        .split(/\r?\n/);
+
+
+    for(
+        const line of lines
+    ){
+
+        const cleaned =
+            line.replace(
+                /[^A-Z0-9]/g,
+                " "
+            );
+
+
+        const matches =
+            cleaned.match(
+                /\b[A-Z]{1,2}\d{6,9}\b/g
+            );
+
+
+        if(
+            matches &&
+            matches.length
+        ){
+
+            return matches[0];
+
+        }
+
+    }
+
+
+    /*
+     * Search entire OCR text
+     */
+
+    const matches =
+        text
+        .toUpperCase()
+        .match(
+            /\b[A-Z]{1,2}\d{6,9}\b/g
+        );
+
+
+    if(
+        matches &&
+        matches.length
+    ){
+
+        return matches[0];
+
+    }
+
+
+    return "";
+
+}
+
+
+/* =========================================
+   APPLICANT NAME
+========================================= */
+
+function extractApplicantName(text){
+
+    const patterns = [
+
+        /(?:Applicant|Name)\s*[:;]\s*([A-Z][A-Z .'-]{2,})/i,
+
+        /(?:Full Name)\s*[:;]\s*([A-Z][A-Z .'-]{2,})/i,
+
+        /(?:Given Name)\s*[:;]\s*([A-Z][A-Z .'-]{2,})/i
+
+    ];
+
+
+    for(
+        const pattern of patterns
+    ){
+
+        const match =
+            text.match(pattern);
+
+
+        if(match){
+
+            return cleanPersonName(
+                match[1]
+            );
+
+        }
+
+    }
+
+
+    return "";
+
+}
+
+
+/* =========================================
+   FATHER NAME
+========================================= */
+
+function extractFatherName(text){
+
+    const patterns = [
+
+        /Father'?s?\s*Name\s*[:;]\s*([A-Z][A-Z .'-]{2,})/i,
+
+        /Father\s*[:;]\s*([A-Z][A-Z .'-]{2,})/i
+
+    ];
+
+
+    for(
+        const pattern of patterns
+    ){
+
+        const match =
+            text.match(pattern);
+
+
+        if(match){
+
+            return cleanPersonName(
+                match[1]
+            );
+
+        }
+
+    }
+
+
+    return "";
+
+}
+
+
+/* =========================================
+   CLEAN PERSON NAME
+========================================= */
+
+function cleanPersonName(value){
+
+    return String(value || "")
+        .replace(
+            /(?:Mother'?s?|Legal Guardian|Permanent Address|Address|Emergency Contact).*$/i,
+            ""
+        )
+        .replace(
+            /[^A-Za-z .'-]/g,
+            " "
+        )
+        .replace(
+            /\s+/g,
+            " "
+        )
+        .trim();
+
+}
+
+
+/* =========================================
+   EXTRACT ADDRESS
+========================================= */
+
+function extractAddress(text){
+
+    const lines =
+        text
+        .split(/\r?\n/)
+        .map(line =>
+            line.trim()
+        )
+        .filter(Boolean);
+
+
+    for(
+        let i=0;
+        i<lines.length;
+        i++
+    ){
+
+        if(
+            /\bADDRESS\b/i.test(
+                lines[i]
+            )
+        ){
+
+            let line =
+                lines[i]
+                .replace(
+                    /^.*?\bADDRESS\b\s*[:;]?\s*/i,
+                    ""
+                )
+                .trim();
+
+
+            /*
+             * If address continues next line,
+             * add it.
+             */
+
+            if(
+                i+1 < lines.length &&
+                !/^(Telephone|Emergency|Relationship|Mother|Father|Name|Legal Guardian)/i.test(
+                    lines[i+1]
+                )
+            ){
+
+                if(
+                    lines[i+1].includes(",") ||
+                    /\d{4,5}/.test(lines[i+1])
+                ){
+
+                    line +=
+                        " " +
+                        lines[i+1];
+
+                }
+
+            }
+
+
+            if(line){
+                return line;
+            }
+
+        }
+
+    }
+
+
+    /*
+     * Permanent Address fallback
+     */
+
+    for(
+        let i=0;
+        i<lines.length;
+        i++
+    ){
+
+        if(
+            /\bPERMANENT ADDRESS\b/i.test(
+                lines[i]
+            )
+        ){
+
+            let line =
+                lines[i]
+                .replace(
+                    /^.*?PERMANENT ADDRESS\s*[:;]?\s*/i,
+                    ""
+                )
+                .trim();
+
+
+            if(
+                i+1 < lines.length &&
+                (
+                    lines[i+1].includes(",") ||
+                    /\d{4,5}/.test(lines[i+1])
+                )
+            ){
+
+                line +=
+                    " " +
+                    lines[i+1];
+
+            }
+
+
+            if(line){
+                return line;
+            }
+
+        }
+
+    }
+
+
+    return "";
+
+}
+
+
+/* =========================================
+   PARSE ADDRESS
+
+   Example:
+
+   KHOTIRA,
+   SOUTH SURMA,
+   JALALPUR - 3107,
+   SYLHET
+
+   Result:
+
+   P/S = SOUTH SURMA
+   P/O = JALALPUR
+   Post Code = 3107
+   District = SYLHET
+
+   KHOTIRA ignored.
+========================================= */
+
+function parseAddress(address){
+
+    if(!address){
+
+        return {
+            po:"",
+            postCode:"",
+            ps:"",
+            district:""
+        };
+
+    }
+
+
+    const clean =
+        address
+        .replace(
+            /[–—]/g,
+            "-"
+        )
+        .replace(
+            /\s+/g,
+            " "
+        )
+        .trim();
+
+
+    const parts =
+        clean
+        .split(",")
+        .map(
+            part =>
+                part
+                .replace(
+                    /^[;:]+|[;:]+$/g,
+                    ""
+                )
+                .trim()
+        )
+        .filter(Boolean);
+
+
+    let index = -1;
+
+    let po = "";
+    let postCode = "";
+    let ps = "";
+    let district = "";
+
+
+    for(
+        let i=0;
+        i<parts.length;
+        i++
+    ){
+
+        const match =
+            parts[i].match(
+                /^(.+?)\s*-\s*(\d{4,5})\b/
+            );
+
+
+        if(match){
+
+            index = i;
+
+            po =
+                match[1]
+                .trim();
+
+            postCode =
+                match[2]
+                .trim();
+
+            break;
+
+        }
+
+    }
+
+
+    if(index >= 0){
+
+        /*
+         * Previous part = P/S
+         */
+
+        if(index-1 >= 0){
+
+            ps =
+                parts[index-1]
+                .trim();
+
+        }
+
+
+        /*
+         * Next part = District
+         */
+
+        if(index+1 < parts.length){
+
+            district =
+                parts[index+1]
+                .trim()
+                .replace(
+                    /[^A-Za-z .'-]/g,
+                    ""
+                )
+                .trim();
+
+        }
+
+    }
+
+
+    return {
+        po,
+        postCode,
+        ps,
+        district
+    };
+
+}
+
+
+/* =========================================
+   COMPARE PASSPORT WITH PCC
+========================================= */
+
+function comparePassportWithPCC(){
+
+    const pcc = {
+
+        name:
+            getPCCValue("applicantName"),
+
+        father:
+            getPCCValue("fatherName"),
+
+        po:
+            getPCCValue("po"),
+
+        postCode:
+            getPCCValue("postCode"),
+
+        ps:
+            getPCCValue("ps"),
+
+        district:
+            getPCCValue("district"),
+
+        passportNo:
+            getPCCValue("passportNo")
+
+    };
+
+
+    const passport = {
+
+        name:
+            getPCCValue("passportApplicant"),
+
+        father:
+            getPCCValue("passportFather"),
+
+        po:
+            getPCCValue("passportPO"),
+
+        postCode:
+            getPCCValue("passportPostCode"),
+
+        ps:
+            getPCCValue("passportPS"),
+
+        district:
+            getPCCValue("passportDistrict"),
+
+        passportNo:
+            getPCCValue("passportNumber")
+
+    };
+
+
+    const rows = [
+
+        {
+            field:"Applicant Name",
+            pcc:pcc.name,
+            passport:passport.name
+        },
+
+        {
+            field:"Father Name",
+            pcc:pcc.father,
+            passport:passport.father
+        },
+
+        {
+            field:"P/O",
+            pcc:pcc.po,
+            passport:passport.po
+        },
+
+        {
+            field:"Post Code",
+            pcc:pcc.postCode,
+            passport:passport.postCode
+        },
+
+        {
+            field:"P/S",
+            pcc:pcc.ps,
+            passport:passport.ps
+        },
+
+        {
+            field:"District",
+            pcc:pcc.district,
+            passport:passport.district
+        },
+
+        {
+            field:"Passport No",
+            pcc:pcc.passportNo,
+            passport:passport.passportNo
+        }
+
+    ];
+
+
+    showComparison(rows);
+
+}
+
+
+/* =========================================
+   SMART MATCH
+========================================= */
+
+function valuesMatch(
+    a,
+    b
+){
+
+    const x =
+        normalizeText(a);
+
+    const y =
+        normalizeText(b);
+
+
+    if(!x || !y){
+        return false;
+    }
+
+
+    if(x === y){
+        return true;
+    }
+
+
+    /*
+     * Compact comparison
+     */
+
+    const cx =
+        compactText(a);
+
+    const cy =
+        compactText(b);
+
+
+    return (
+        cx &&
+        cy &&
+        cx === cy
+    );
+
+}
+
+
+/* =========================================
+   SHOW COMPARISON
+========================================= */
+
+function showComparison(rows){
+
+    const box =
+        document.getElementById(
+            "comparisonBox"
+        );
+
+    const body =
+        document.getElementById(
+            "comparisonBody"
+        );
+
+    const status =
+        document.getElementById(
+            "comparisonStatus"
+        );
+
+
+    body.innerHTML = "";
+
+
+    let mismatch = false;
+    let review = false;
+
+
+    rows.forEach(row => {
+
+        const tr =
+            document.createElement("tr");
+
+
+        const tdField =
+            document.createElement("td");
+
+        tdField.textContent =
+            row.field;
+
+
+        const tdPCC =
+            document.createElement("td");
+
+        tdPCC.textContent =
+            row.pcc || "Not Found";
+
+
+        const tdPassport =
+            document.createElement("td");
+
+        tdPassport.textContent =
+            row.passport || "Not Found";
+
+
+        const tdStatus =
+            document.createElement("td");
+
+
+        /*
+         * Father name may not be available
+         * on every passport.
+         */
+
+        if(
+            !row.pcc ||
+            !row.passport
+        ){
+
+            tdStatus.textContent =
+                "⚠️ REVIEW";
+
+            tdStatus.className =
+                "review-cell";
+
+            review = true;
+
+        }else if(
+            valuesMatch(
+                row.pcc,
+                row.passport
+            )
+        ){
+
+            tdStatus.textContent =
+                "✅ MATCH";
+
+            tdStatus.className =
+                "match-cell";
+
+        }else{
+
+            tdStatus.textContent =
+                "❌ MISMATCH";
+
+            tdStatus.className =
+                "mismatch-cell";
+
+            mismatch = true;
+
+        }
+
+
+        tr.appendChild(tdField);
+        tr.appendChild(tdPCC);
+        tr.appendChild(tdPassport);
+        tr.appendChild(tdStatus);
+
+
+        body.appendChild(tr);
+
+    });
+
+
+    /*
+     * Overall result
+     */
+
+    if(mismatch){
+
+        status.innerHTML =
+            "<div class='status fake' style='display:block'>" +
+            "❌ MISMATCH FOUND — Passport এবং PCC-এর তথ্য মিলছে না।" +
+            "</div>";
+
+    }else if(review){
+
+        status.innerHTML =
+            "<div class='status invalid' style='display:block'>" +
+            "⚠️ MANUAL REVIEW REQUIRED — কিছু তথ্য OCR-এ পাওয়া যায়নি।" +
+            "</div>";
+
+    }else{
+
+        status.innerHTML =
+            "<div class='status official' style='display:block'>" +
+            "✅ ALL INFORMATION MATCHED" +
+            "</div>";
+
+    }
+
+
+    box.classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* =========================================
+   COPY DETAILS
+========================================= */
+
+async function copyDetails(){
+
+    const rows =
+        document.querySelectorAll(
+            ".details tr"
+        );
+
+
+    let text =
+        "Police Clearance Information\n\n";
+
+
+    rows.forEach(row => {
+
+        const cells =
+            row.querySelectorAll(
+                "th,td"
+            );
+
+
+        if(cells.length === 2){
+
+            text +=
+                cells[0].innerText +
+                ": " +
+                cells[1].innerText +
+                "\n";
+
+        }
+
+    });
+
+
+    await navigator.clipboard.writeText(
+        text
+    );
+
+
+    alert("Details copied");
+
+}
+
+
+/* =========================================
+   QR SCANNER
+========================================= */
+
+async function startQRScanner(){
+
+    try{
+
+        if(qrScanner){
+
+            await stopQRScanner();
+
+        }
+
+
+        qrScanner =
+            new Html5Qrcode(
+                "qrReader"
+            );
+
+
+        await qrScanner.start(
+
+            {
+                facingMode:"environment"
+            },
+
+            {
+                fps:10,
+                qrbox:{
+                    width:250,
+                    height:250
+                }
+            },
+
+            function(decodedText){
+
+                document.getElementById(
+                    "verification_link"
+                ).value =
+                    decodedText;
+
+
+                checkLink();
+
+
+                stopQRScanner();
+
+            },
+
+            function(errorMessage){
+
+                /*
+                 * Ignore continuous scan errors.
+                 */
+
+            }
+
+        );
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(
+            "Camera/QR scanner চালু করা যায়নি। Browser camera permission দিন।"
+        );
+
+    }
+
+}
+
+
+async function stopQRScanner(){
+
+    if(!qrScanner){
+        return;
+    }
+
+
+    try{
+
+        await qrScanner.stop();
+
+    }catch(e){
+
+        console.log(e);
+
+    }
+
+
+    try{
+
+        qrScanner.clear();
+
+    }catch(e){
+
+        console.log(e);
+
+    }
+
+
+    qrScanner = null;
+
+}
+
+
+/* =========================================
+   KEYBOARD
+========================================= */
+
+document
+.getElementById("ref_number")
+.addEventListener(
+    "keydown",
+    function(e){
+
+        if(e.key==="Enter"){
+            searchReference();
+        }
+
+    }
+);
+
+
+document
+.getElementById("verification_link")
+.addEventListener(
+    "keydown",
+    function(e){
+
+        if(e.key==="Enter"){
+            checkLink();
+        }
+
+    }
+);
+
+
+/* =========================================
+   SERVICE WORKER
+========================================= */
+
+if(
+    "serviceWorker" in navigator
+){
+
+    window.addEventListener(
+        "load",
+        function(){
+
+            navigator
+            .serviceWorker
+            .register("sw.js")
+            .catch(
+                function(error){
+
+                    console.log(
+                        "Service Worker Error:",
+                        error
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+</script>
+
+</body>
+</html>
