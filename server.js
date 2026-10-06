@@ -1,4 +1,5 @@
 const express = require("express");
+const https = require("https");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,40 +38,10 @@ function stripHtml(text) {
 
 
 // ======================================================
-// EXTRACT BOLD VALUE
-// ======================================================
-
-function getBoldAfter(html, textBefore) {
-
-    const escaped = textBefore.replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&"
-    );
-
-    const regex = new RegExp(
-        escaped + "[\\s\\S]*?<b[^>]*>(.*?)<\\/b>",
-        "i"
-    );
-
-    const match = html.match(regex);
-
-    if (!match) {
-        return "";
-    }
-
-    return stripHtml(match[1]);
-}
-
-
-// ======================================================
 // PCC PARSER
 // ======================================================
 
 function parsePCC(html, token) {
-
-    // --------------------------------------------------
-    // Dated
-    // --------------------------------------------------
 
     let dated = "";
 
@@ -80,7 +51,6 @@ function parsePCC(html, token) {
     ];
 
     for (const pattern of datedPatterns) {
-
         const match = html.match(pattern);
 
         if (match) {
@@ -233,6 +203,80 @@ function parsePCC(html, token) {
 
 
 // ======================================================
+// HTTPS REQUEST FALLBACK
+// ======================================================
+
+function fetchPCCWithHttps(url) {
+
+    return new Promise((resolve, reject) => {
+
+        const request = https.get(
+            url,
+            {
+                rejectUnauthorized: false,
+
+                headers: {
+                    "User-Agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0.0.0 Safari/537.36",
+
+                    "Accept":
+                        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+
+                    "Accept-Language":
+                        "en-US,en;q=0.9",
+
+                    "Cache-Control":
+                        "no-cache",
+
+                    "Pragma":
+                        "no-cache"
+                }
+            },
+
+            (response) => {
+
+                let body = "";
+
+                response.setEncoding("utf8");
+
+                response.on("data", chunk => {
+                    body += chunk;
+                });
+
+                response.on("end", () => {
+
+                    resolve({
+                        status: response.statusCode,
+                        statusText: response.statusMessage || "",
+                        url,
+                        headers: response.headers,
+                        body
+                    });
+
+                });
+
+            }
+        );
+
+
+        request.setTimeout(30000, () => {
+
+            request.destroy(
+                new Error("PCC request timeout")
+            );
+
+        });
+
+
+        request.on("error", error => {
+            reject(error);
+        });
+
+    });
+}
+
+
+// ======================================================
 // PCC API
 // ======================================================
 
@@ -245,21 +289,18 @@ app.get("/api/pcc", async (req, res) => {
         const targetUrl = req.query.url;
 
 
-        // --------------------------------------------------
-        // URL REQUIRED
-        // --------------------------------------------------
-
         if (!targetUrl) {
 
             return res.status(400).json({
                 success: false,
                 message: "PCC URL is required"
             });
+
         }
 
 
         // --------------------------------------------------
-        // PARSE URL
+        // URL VALIDATION
         // --------------------------------------------------
 
         let parsedUrl;
@@ -275,6 +316,7 @@ app.get("/api/pcc", async (req, res) => {
                 message: "Invalid URL",
                 error: error.message
             });
+
         }
 
 
@@ -288,6 +330,7 @@ app.get("/api/pcc", async (req, res) => {
                 success: false,
                 message: "Invalid PCC website"
             });
+
         }
 
 
@@ -308,6 +351,7 @@ app.get("/api/pcc", async (req, res) => {
             if (tokenMatch) {
                 token = tokenMatch[1];
             }
+
         }
 
 
@@ -317,198 +361,201 @@ app.get("/api/pcc", async (req, res) => {
                 success: false,
                 message: "Reference token not found"
             });
+
         }
 
-
-        // --------------------------------------------------
-        // LOG REQUEST
-        // --------------------------------------------------
 
         console.log("");
         console.log("======================================");
         console.log("PCC REQUEST");
         console.log("======================================");
         console.log("Target URL:", targetUrl);
-        console.log("Hostname:", parsedUrl.hostname);
         console.log("Token:", token);
-        console.log("Node Version:", process.version);
-        console.log("Time:", new Date().toISOString());
+        console.log("Node:", process.version);
         console.log("======================================");
 
 
-        // --------------------------------------------------
-        // ABORT CONTROLLER
-        // --------------------------------------------------
+        // ==================================================
+        // FIRST TRY: NORMAL FETCH
+        // ==================================================
 
-        const controller = new AbortController();
-
-        const timeout = setTimeout(() => {
-
-            console.log("PCC REQUEST TIMEOUT");
-
-            controller.abort();
-
-        }, 30000);
-
-
-        let response;
-
-
-        // --------------------------------------------------
-        // FETCH OFFICIAL PCC PAGE
-        // --------------------------------------------------
+        let html = "";
+        let responseStatus = 0;
+        let responseStatusText = "";
+        let finalUrl = targetUrl;
 
         try {
 
-            console.log("Connecting to PCC server...");
+            console.log(
+                "Trying normal Node fetch..."
+            );
 
-            response = await fetch(targetUrl, {
 
-                method: "GET",
+            const controller =
+                new AbortController();
 
-                redirect: "follow",
 
-                signal: controller.signal,
+            const timeout =
+                setTimeout(() => {
+                    controller.abort();
+                }, 30000);
 
-                headers: {
 
-                    "User-Agent":
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+            const response = await fetch(
+                targetUrl,
+                {
+                    method: "GET",
 
-                    "Accept":
-                        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                    redirect: "follow",
 
-                    "Accept-Language":
-                        "en-US,en;q=0.9",
+                    signal: controller.signal,
 
-                    "Cache-Control":
-                        "no-cache",
+                    headers: {
+                        "User-Agent":
+                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0.0.0 Safari/537.36",
 
-                    "Pragma":
-                        "no-cache",
+                        "Accept":
+                            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 
-                    "Upgrade-Insecure-Requests":
-                        "1"
+                        "Accept-Language":
+                            "en-US,en;q=0.9",
+
+                        "Cache-Control":
+                            "no-cache",
+
+                        "Pragma":
+                            "no-cache"
+                    }
                 }
+            );
 
-            });
-
-        } catch (fetchError) {
 
             clearTimeout(timeout);
 
 
-            console.log("");
-            console.log("======================================");
-            console.log("PCC FETCH ERROR");
-            console.log("======================================");
+            responseStatus =
+                response.status;
 
-            console.log("Name:", fetchError.name);
-            console.log("Message:", fetchError.message);
-            console.log("Code:", fetchError.code);
-            console.log("Cause:", fetchError.cause);
+            responseStatusText =
+                response.statusText;
+
+            finalUrl =
+                response.url;
+
+
+            if (response.ok) {
+
+                html =
+                    await response.text();
+
+                console.log(
+                    "Normal fetch successful."
+                );
+
+            }
+
+        } catch (error) {
+
             console.log(
-                "Cause Name:",
-                fetchError.cause?.name
-            );
-            console.log(
-                "Cause Message:",
-                fetchError.cause?.message
-            );
-            console.log(
-                "Cause Code:",
-                fetchError.cause?.code
+                "Normal fetch failed:",
+                error.message
             );
 
-            console.log("======================================");
-
-
-            return res.status(502).json({
-
-                success: false,
-
-                message:
-                    "Render server could not connect to the official PCC website.",
-
-                error: fetchError.message,
-
-                errorName: fetchError.name,
-
-                errorCode:
-                    fetchError.code ||
-                    fetchError.cause?.code ||
-                    null,
-
-                cause:
-                    fetchError.cause?.message ||
-                    null,
-
-                elapsedMs:
-                    Date.now() - requestStarted
-            });
         }
 
 
-        clearTimeout(timeout);
+        // ==================================================
+        // FALLBACK HTTPS
+        // ==================================================
+
+        if (!html) {
+
+            console.log(
+                "Trying HTTPS fallback..."
+            );
 
 
-        // --------------------------------------------------
-        // RESPONSE INFORMATION
-        // --------------------------------------------------
+            try {
 
-        console.log("");
-        console.log("======================================");
-        console.log("PCC RESPONSE");
-        console.log("======================================");
-
-        console.log("HTTP STATUS:", response.status);
-        console.log("STATUS TEXT:", response.statusText);
-        console.log("FINAL URL:", response.url);
-        console.log(
-            "CONTENT TYPE:",
-            response.headers.get("content-type")
-        );
-
-        console.log("======================================");
+                const result =
+                    await fetchPCCWithHttps(
+                        targetUrl
+                    );
 
 
-        // --------------------------------------------------
-        // HTTP ERROR
-        // --------------------------------------------------
+                responseStatus =
+                    result.status;
 
-        if (!response.ok) {
+                responseStatusText =
+                    result.statusText;
 
-            return res.status(502).json({
+                html =
+                    result.body;
 
-                success: false,
 
-                message:
-                    "Official PCC server returned an HTTP error.",
+                console.log(
+                    "HTTPS fallback status:",
+                    result.status
+                );
 
-                status:
-                    response.status,
 
-                statusText:
-                    response.statusText,
+                if (
+                    result.status < 200 ||
+                    result.status >= 400
+                ) {
 
-                finalUrl:
-                    response.url
-            });
+                    return res.status(502).json({
+
+                        success: false,
+
+                        message:
+                            "Official PCC server returned an HTTP error.",
+
+                        status:
+                            result.status,
+
+                        statusText:
+                            result.statusText
+
+                    });
+
+                }
+
+            } catch (fallbackError) {
+
+                console.log(
+                    "HTTPS fallback failed:",
+                    fallbackError.message
+                );
+
+
+                return res.status(502).json({
+
+                    success: false,
+
+                    message:
+                        "Render server could not connect to the official PCC website.",
+
+                    error:
+                        fallbackError.message,
+
+                    errorName:
+                        fallbackError.name,
+
+                    elapsedMs:
+                        Date.now() -
+                        requestStarted
+
+                });
+
+            }
+
         }
 
 
-        // --------------------------------------------------
-        // READ HTML
-        // --------------------------------------------------
-
-        const html = await response.text();
-
-
-        console.log(
-            "PCC HTML LENGTH:",
-            html.length
-        );
-
+        // ==================================================
+        // CHECK HTML
+        // ==================================================
 
         if (!html || html.length < 100) {
 
@@ -520,68 +567,74 @@ app.get("/api/pcc", async (req, res) => {
                     "Official PCC page returned an empty or incomplete response.",
 
                 htmlLength:
-                    html.length
+                    html ? html.length : 0
+
             });
+
         }
 
 
-        // --------------------------------------------------
-        // PARSE PCC
-        // --------------------------------------------------
-
-        const data = parsePCC(
-            html,
-            token
+        console.log(
+            "PCC HTML LENGTH:",
+            html.length
         );
+
+
+        // ==================================================
+        // PARSE
+        // ==================================================
+
+        const data =
+            parsePCC(
+                html,
+                token
+            );
 
 
         console.log("");
         console.log("======================================");
         console.log("PCC PARSED DATA");
         console.log("======================================");
-
         console.log(data);
-
         console.log("======================================");
 
 
-        // --------------------------------------------------
-        // RETURN DATA
-        // --------------------------------------------------
+        // ==================================================
+        // RETURN
+        // ==================================================
 
         return res.json({
 
             success: true,
 
-            data: data,
+            data,
 
-            source: "pcc.police.gov.bd",
+            source:
+                "pcc.police.gov.bd",
 
-            finalUrl: response.url,
+            finalUrl,
 
-            httpStatus: response.status,
+            httpStatus:
+                responseStatus,
 
-            responseLength: html.length,
+            responseStatusText,
+
+            responseLength:
+                html.length,
 
             elapsedMs:
-                Date.now() - requestStarted
+                Date.now() -
+                requestStarted
+
         });
 
 
     } catch (error) {
 
-
-        console.log("");
-        console.log("======================================");
-        console.log("UNEXPECTED PCC ERROR");
-        console.log("======================================");
-
-        console.log("Name:", error.name);
-        console.log("Message:", error.message);
-        console.log("Stack:", error.stack);
-        console.log("Cause:", error.cause);
-
-        console.log("======================================");
+        console.log(
+            "Unexpected PCC error:",
+            error
+        );
 
 
         return res.status(500).json({
@@ -598,10 +651,12 @@ app.get("/api/pcc", async (req, res) => {
                 error.name,
 
             cause:
-                error.cause?.message ||
-                null
+                error.cause?.message || null
+
         });
+
     }
+
 });
 
 
@@ -623,12 +678,14 @@ app.get("/api/health", (req, res) => {
 
         port:
             PORT
+
     });
+
 });
 
 
 // ======================================================
-// ROOT TEST
+// TEST
 // ======================================================
 
 app.get("/api/test", (req, res) => {
@@ -645,7 +702,9 @@ app.get("/api/test", (req, res) => {
 
         nodeVersion:
             process.version
+
     });
+
 });
 
 
@@ -659,17 +718,8 @@ app.listen(PORT, () => {
     console.log("======================================");
     console.log("PCC VERIFY SERVER RUNNING");
     console.log("======================================");
-    console.log(
-        "PORT:",
-        PORT
-    );
-    console.log(
-        "Open: http://localhost:" + PORT
-    );
-    console.log(
-        "Node:",
-        process.version
-    );
+    console.log("PORT:", PORT);
+    console.log("Node:", process.version);
     console.log("======================================");
 
 });
