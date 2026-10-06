@@ -1,17 +1,16 @@
-const CACHE_NAME = "pcc-verify-v1";
+const CACHE_NAME = "pcc-verify-v2";
 
 const FILES = [
     "./",
     "./index.html",
-    "./manifest.json",
-    "./icon.svg"
+    "./manifest.json"
 ];
 
 self.addEventListener("install", event => {
 
     event.waitUntil(
         caches.open(CACHE_NAME)
-        .then(cache => cache.addAll(FILES))
+            .then(cache => cache.addAll(FILES))
     );
 
     self.skipWaiting();
@@ -23,17 +22,17 @@ self.addEventListener("activate", event => {
 
     event.waitUntil(
 
-        caches.keys().then(keys =>
+        caches.keys().then(keys => {
 
-            Promise.all(
+            return Promise.all(
 
                 keys
-                .filter(key => key !== CACHE_NAME)
-                .map(key => caches.delete(key))
+                    .filter(key => key !== CACHE_NAME)
+                    .map(key => caches.delete(key))
 
-            )
+            );
 
-        )
+        })
 
     );
 
@@ -44,19 +43,46 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
 
-    if(event.request.method !== "GET"){
+    if (event.request.method !== "GET") {
+        return;
+    }
+
+    // API request cache করবে না
+    if (event.request.url.includes("/api/")) {
         return;
     }
 
     event.respondWith(
 
-        caches.match(event.request)
-        .then(cached => {
+        fetch(event.request)
+            .then(response => {
 
-            return cached ||
-                   fetch(event.request);
+                // সফল response cache করে রাখবে
+                if (response && response.status === 200) {
 
-        })
+                    const responseClone =
+                        response.clone();
+
+                    caches.open(CACHE_NAME)
+                        .then(cache => {
+                            cache.put(
+                                event.request,
+                                responseClone
+                            );
+                        });
+
+                }
+
+                return response;
+
+            })
+            .catch(() => {
+
+                return caches.match(
+                    event.request
+                );
+
+            })
 
     );
 
