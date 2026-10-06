@@ -84,25 +84,45 @@ function parsePCC(html, token) {
 
 
     // --------------------------------------------------
-    // Father Name
-    // --------------------------------------------------
+// Father Name
+// --------------------------------------------------
 
-    let fatherName = "";
+let fatherName = "";
 
-    const fatherPatterns = [
-        /of\s*<b[^>]*>(.*?)<\/b>/i,
-        /Father(?:'s)?\s*Name\s*:?\s*<b[^>]*>(.*?)<\/b>/i
-    ];
+const fatherPatterns = [
 
-    for (const pattern of fatherPatterns) {
+    /Father(?:'s)?\s*Name\s*[:\-]?\s*<b[^>]*>(.*?)<\/b>/i,
 
-        const match = html.match(pattern);
+    /Father(?:'s)?\s*Name\s*[:\-]?\s*<strong[^>]*>(.*?)<\/strong>/i,
 
-        if (match) {
-            fatherName = stripHtml(match[1]);
+    /Father(?:'s)?\s*Name\s*[:\-]?\s*([^<\r\n]+)/i,
+
+    /S\/O\s*[:\-]?\s*<b[^>]*>(.*?)<\/b>/i,
+
+    /Son\s+of\s*[:\-]?\s*<b[^>]*>(.*?)<\/b>/i
+
+];
+
+for (const pattern of fatherPatterns) {
+
+    const match = html.match(pattern);
+
+    if (match) {
+
+        const value = stripHtml(match[1]);
+
+        // Avoid obvious wrong matches
+        if (
+            value &&
+            value.toUpperCase() !== "BANGLADESH" &&
+            value.toUpperCase() !== "JALALPUR" &&
+            value.toUpperCase() !== "SYLHET"
+        ) {
+            fatherName = value;
             break;
         }
     }
+}
 
 
     // --------------------------------------------------
