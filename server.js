@@ -2,744 +2,786 @@ const express = require("express");
 const https = require("https");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.use(express.static(__dirname));
+const PORT =
+  process.env.PORT || 3000;
 
 
-// ======================================================
-// TEXT CLEANER
-// ======================================================
+/* =========================
+   STATIC FILES
+========================= */
 
-function cleanText(text) {
-    if (!text) return "";
+app.use(
+  express.static(__dirname)
+);
 
-    return String(text)
-        .replace(/\s+/g, " ")
-        .replace(/&nbsp;/gi, " ")
-        .trim();
+
+/* =========================
+   HELPERS
+========================= */
+
+function cleanText(value) {
+
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
 }
 
 
-// ======================================================
-// REMOVE HTML
-// ======================================================
+function stripHtml(value) {
 
-function stripHtml(text) {
-    if (!text) return "";
+  return String(value || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
 
-    return cleanText(
-        String(text)
-            .replace(/<br\s*\/?>/gi, " ")
-            .replace(/<\/p>/gi, " ")
-            .replace(/<[^>]*>/g, " ")
-    );
 }
 
 
-// ======================================================
-// PCC PARSER
-// ======================================================
+/* =========================
+   PCC PARSER
+========================= */
 
 function parsePCC(html, token) {
 
-    let dated = "";
+  const text =
+    stripHtml(html);
 
-    const datedPatterns = [
-        /Dated:\s*([^<\r\n]+)/i,
-        /Dated\s*:\s*([^<\r\n]+)/i
-    ];
 
-    for (const pattern of datedPatterns) {
-        const match = html.match(pattern);
+  const result = {
 
-        if (match) {
-            dated = cleanText(match[1]);
-            break;
+    refNo:
+      token || "",
+
+    dated:
+      "",
+
+    applicantName:
+      "",
+
+    fatherName:
+      "",
+
+    po:
+      "",
+
+    postCode:
+      "",
+
+    ps:
+      "",
+
+    district:
+      "",
+
+    passportNo:
+      ""
+
+  };
+
+
+  function findAfter(
+    labels,
+    maxLength = 150
+  ) {
+
+    for (
+      const label of labels
+    ) {
+
+      const index =
+        text
+          .toUpperCase()
+          .indexOf(
+            label.toUpperCase()
+          );
+
+      if(index !== -1){
+
+        const after =
+          text.substring(
+            index + label.length
+          );
+
+        const value =
+          after
+            .replace(
+              /^[:\-\s]+/,
+              ""
+            )
+            .split(
+              /(?:PCC|POLICE|CLEARANCE|FATHER|PASSPORT|DISTRICT|POST|P\/O|P\/S)/i
+            )[0]
+            .trim();
+
+        if(
+          value &&
+          value.length <= maxLength
+        ){
+
+          return value;
+
         }
+
+      }
+
     }
 
+    return "";
 
-    // --------------------------------------------------
-    // Applicant Name
-    // --------------------------------------------------
+  }
 
-    let applicantName = "";
 
-    const applicantPatterns = [
-        /character and antecedents of\s+Mr\.\s*<b[^>]*>(.*?)<\/b>/i,
-        /character and antecedents of\s+Mr\.\s*<strong[^>]*>(.*?)<\/strong>/i,
-        /character and antecedents of\s+Mr\.\s*([^<]+)/i
-    ];
+  /* DATE */
 
-    for (const pattern of applicantPatterns) {
+  const dateMatch =
+    text.match(
+      /\b\d{1,2}[-\/](?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[-\/]\d{4}\b/i
+    );
 
-        const match = html.match(pattern);
 
-        if (match) {
-            applicantName = stripHtml(match[1]);
-            break;
-        }
+  if(dateMatch){
+
+    result.dated =
+      cleanText(
+        dateMatch[0]
+      );
+
+  }else{
+
+    const numericDate =
+      text.match(
+        /\b\d{1,2}[-\/]\d{1,2}[-\/]\d{4}\b/
+      );
+
+    if(numericDate){
+
+      result.dated =
+        cleanText(
+          numericDate[0]
+        );
+
     }
 
+  }
 
-    // --------------------------------------------------
-// Father Name
-// --------------------------------------------------
 
-let fatherName = "";
+  /* APPLICANT */
 
-const fatherPatterns = [
+  result.applicantName =
+    findAfter([
+      "Applicant Name",
+      "Applicant",
+      "Name"
+    ]);
 
-    /Father(?:'s)?\s*Name\s*[:\-]?\s*<b[^>]*>(.*?)<\/b>/i,
 
-    /Father(?:'s)?\s*Name\s*[:\-]?\s*<strong[^>]*>(.*?)<\/strong>/i,
+  /* FATHER */
 
-    /Father(?:'s)?\s*Name\s*[:\-]?\s*([^<\r\n]+)/i,
+  result.fatherName =
+    findAfter([
+      "Father Name",
+      "Father's Name",
+      "Father"
+    ]);
 
-    /S\/O\s*[:\-]?\s*<b[^>]*>(.*?)<\/b>/i,
 
-    /Son\s+of\s*[:\-]?\s*<b[^>]*>(.*?)<\/b>/i
+  /* P/O */
 
-];
+  result.po =
+    findAfter([
+      "P/O",
+      "P.O.",
+      "Post Office"
+    ]);
 
-for (const pattern of fatherPatterns) {
 
-    const match = html.match(pattern);
+  /* POST CODE */
 
-    if (match) {
+  const postMatch =
+    text.match(
+      /(?:Post Code|Postal Code|Postcode)\s*[:\-]?\s*(\d{4,6})/i
+    );
 
-        const value = stripHtml(match[1]);
+  if(postMatch){
 
-        // Avoid obvious wrong matches
-        if (
-            value &&
-            value.toUpperCase() !== "BANGLADESH" &&
-            value.toUpperCase() !== "JALALPUR" &&
-            value.toUpperCase() !== "SYLHET"
-        ) {
-            fatherName = value;
-            break;
-        }
-    }
+    result.postCode =
+      cleanText(
+        postMatch[1]
+      );
+
+  }
+
+
+  /* P/S */
+
+  result.ps =
+    findAfter([
+      "P/S",
+      "P.S.",
+      "Police Station"
+    ]);
+
+
+  /* DISTRICT */
+
+  result.district =
+    findAfter([
+      "District",
+      "Jela",
+      "Zila"
+    ]);
+
+
+  /* PASSPORT */
+
+  const passportMatch =
+    text.match(
+      /(?:Passport\s*(?:No|Number)?|Passport)\s*[:\-]?\s*([A-Z0-9]{6,15})/i
+    );
+
+  if(passportMatch){
+
+    result.passportNo =
+      cleanText(
+        passportMatch[1]
+      );
+
+  }
+
+
+  return result;
+
 }
 
 
-    // --------------------------------------------------
-    // P/O
-    // --------------------------------------------------
-
-    let po = "";
-
-    const poMatch = html.match(
-        /P\/O\s*:\s*<b[^>]*>(.*?)<\/b>/i
-    );
-
-    if (poMatch) {
-        po = stripHtml(poMatch[1]);
-    }
-
-
-    // --------------------------------------------------
-    // Post Code
-    // --------------------------------------------------
-
-    let postCode = "";
-
-    const postCodeMatch = html.match(
-        /Post\s*Code\s*:\s*<b[^>]*>(.*?)<\/b>/i
-    );
-
-    if (postCodeMatch) {
-        postCode = stripHtml(postCodeMatch[1]);
-    }
-
-
-    // --------------------------------------------------
-    // P/S
-    // --------------------------------------------------
-
-    let ps = "";
-
-    const psMatch = html.match(
-        /P\/S\s*:\s*<b[^>]*>(.*?)<\/b>/i
-    );
-
-    if (psMatch) {
-        ps = stripHtml(psMatch[1]);
-    }
-
-
-    // --------------------------------------------------
-    // District
-    // --------------------------------------------------
-
-    let district = "";
-
-    const districtMatch = html.match(
-        /District\s*:\s*<b[^>]*>(.*?)<\/b>/i
-    );
-
-    if (districtMatch) {
-        district = stripHtml(districtMatch[1]);
-    }
-
-
-    // --------------------------------------------------
-    // Passport Number
-    // --------------------------------------------------
-
-    let passportNo = "";
-
-    const passportPatterns = [
-        /International Passport No\.\s*<b[^>]*>(.*?)<\/b>/i,
-        /International Passport No\s*:\s*<b[^>]*>(.*?)<\/b>/i,
-        /Passport No\.\s*:\s*<b[^>]*>(.*?)<\/b>/i
-    ];
-
-    for (const pattern of passportPatterns) {
-
-        const match = html.match(pattern);
-
-        if (match) {
-            passportNo = stripHtml(match[1]);
-            break;
-        }
-    }
-
-
-    return {
-        refNo: token,
-        dated,
-        applicantName,
-        fatherName,
-        po,
-        postCode,
-        ps,
-        district,
-        passportNo
-    };
-}
-
-
-// ======================================================
-// HTTPS REQUEST FALLBACK
-// ======================================================
+/* =========================
+   PCC HTTPS FALLBACK
+========================= */
 
 function fetchPCCWithHttps(url) {
 
-    return new Promise((resolve, reject) => {
+  return new Promise(
+    (resolve, reject) => {
 
-        const request = https.get(
-            url,
-            {
-                rejectUnauthorized: false,
+      const request =
+        https.get(
+          url,
+          {
+            rejectUnauthorized:false,
 
-                headers: {
-                    "User-Agent":
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0.0.0 Safari/537.36",
+            headers:{
+              "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0 Safari/537.36",
 
-                    "Accept":
-                        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+              "Accept":
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 
-                    "Accept-Language":
-                        "en-US,en;q=0.9",
-
-                    "Cache-Control":
-                        "no-cache",
-
-                    "Pragma":
-                        "no-cache"
-                }
-            },
-
-            (response) => {
-
-                let body = "";
-
-                response.setEncoding("utf8");
-
-                response.on("data", chunk => {
-                    body += chunk;
-                });
-
-                response.on("end", () => {
-
-                    resolve({
-                        status: response.statusCode,
-                        statusText: response.statusMessage || "",
-                        url,
-                        headers: response.headers,
-                        body
-                    });
-
-                });
-
+              "Accept-Language":
+                "en-US,en;q=0.9"
             }
+          },
+
+          response => {
+
+            let data = "";
+
+            response.setEncoding(
+              "utf8"
+            );
+
+
+            response.on(
+              "data",
+              chunk => {
+
+                data += chunk;
+
+              }
+            );
+
+
+            response.on(
+              "end",
+              () => {
+
+                resolve({
+
+                  statusCode:
+                    response.statusCode,
+
+                  finalUrl:
+                    response.responseUrl ||
+                    url,
+
+                  body:
+                    data
+
+                });
+
+              }
+            );
+
+          }
         );
 
 
-        request.setTimeout(30000, () => {
-
-            request.destroy(
-                new Error("PCC request timeout")
-            );
-
-        });
+      request.on(
+        "error",
+        reject
+      );
 
 
-        request.on("error", error => {
-            reject(error);
-        });
+      request.setTimeout(
+        30000,
+        () => {
 
-    });
+          request.destroy(
+            new Error(
+              "PCC request timeout."
+            )
+          );
+
+        }
+      );
+
+    }
+  );
+
 }
 
 
-// ======================================================
-// PCC API
-// ======================================================
+/* =========================
+   PCC API
+========================= */
 
-app.get("/api/pcc", async (req, res) => {
+app.get(
+  "/api/pcc",
+  async (req, res) => {
 
-    const requestStarted = Date.now();
+    const target =
+      String(
+        req.query.url || ""
+      ).trim();
 
-    try {
 
-        const targetUrl = req.query.url;
+    if(!target){
 
+      return res
+        .status(400)
+        .json({
 
-        if (!targetUrl) {
+          success:false,
 
-            return res.status(400).json({
-                success: false,
-                message: "PCC URL is required"
-            });
-
-        }
-
-
-        // --------------------------------------------------
-        // URL VALIDATION
-        // --------------------------------------------------
-
-        let parsedUrl;
-
-        try {
-
-            parsedUrl = new URL(targetUrl);
-
-        } catch (error) {
-
-            return res.status(400).json({
-                success: false,
-                message: "Invalid URL",
-                error: error.message
-            });
-
-        }
-
-
-        // --------------------------------------------------
-        // OFFICIAL PCC DOMAIN ONLY
-        // --------------------------------------------------
-
-        if (parsedUrl.hostname !== "pcc.police.gov.bd") {
-
-            return res.status(400).json({
-                success: false,
-                message: "Invalid PCC website"
-            });
-
-        }
-
-
-        // --------------------------------------------------
-        // GET TOKEN
-        // --------------------------------------------------
-
-        let token =
-            parsedUrl.searchParams.get("P50_TOKEN_ID");
-
-
-        if (!token) {
-
-            const tokenMatch = targetUrl.match(
-                /P50_TOKEN_ID[:=]([A-Za-z0-9_-]+)/i
-            );
-
-            if (tokenMatch) {
-                token = tokenMatch[1];
-            }
-
-        }
-
-
-        if (!token) {
-
-            return res.status(400).json({
-                success: false,
-                message: "Reference token not found"
-            });
-
-        }
-
-
-        console.log("");
-        console.log("======================================");
-        console.log("PCC REQUEST");
-        console.log("======================================");
-        console.log("Target URL:", targetUrl);
-        console.log("Token:", token);
-        console.log("Node:", process.version);
-        console.log("======================================");
-
-
-        // ==================================================
-        // FIRST TRY: NORMAL FETCH
-        // ==================================================
-
-        let html = "";
-        let responseStatus = 0;
-        let responseStatusText = "";
-        let finalUrl = targetUrl;
-
-        try {
-
-            console.log(
-                "Trying normal Node fetch..."
-            );
-
-
-            const controller =
-                new AbortController();
-
-
-            const timeout =
-                setTimeout(() => {
-                    controller.abort();
-                }, 30000);
-
-
-            const response = await fetch(
-                targetUrl,
-                {
-                    method: "GET",
-
-                    redirect: "follow",
-
-                    signal: controller.signal,
-
-                    headers: {
-                        "User-Agent":
-                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0.0.0 Safari/537.36",
-
-                        "Accept":
-                            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-
-                        "Accept-Language":
-                            "en-US,en;q=0.9",
-
-                        "Cache-Control":
-                            "no-cache",
-
-                        "Pragma":
-                            "no-cache"
-                    }
-                }
-            );
-
-
-            clearTimeout(timeout);
-
-
-            responseStatus =
-                response.status;
-
-            responseStatusText =
-                response.statusText;
-
-            finalUrl =
-                response.url;
-
-
-            if (response.ok) {
-
-                html =
-                    await response.text();
-
-                console.log(
-                    "Normal fetch successful."
-                );
-
-            }
-
-        } catch (error) {
-
-            console.log(
-                "Normal fetch failed:",
-                error.message
-            );
-
-        }
-
-
-        // ==================================================
-        // FALLBACK HTTPS
-        // ==================================================
-
-        if (!html) {
-
-            console.log(
-                "Trying HTTPS fallback..."
-            );
-
-
-            try {
-
-                const result =
-                    await fetchPCCWithHttps(
-                        targetUrl
-                    );
-
-
-                responseStatus =
-                    result.status;
-
-                responseStatusText =
-                    result.statusText;
-
-                html =
-                    result.body;
-
-
-                console.log(
-                    "HTTPS fallback status:",
-                    result.status
-                );
-
-
-                if (
-                    result.status < 200 ||
-                    result.status >= 400
-                ) {
-
-                    return res.status(502).json({
-
-                        success: false,
-
-                        message:
-                            "Official PCC server returned an HTTP error.",
-
-                        status:
-                            result.status,
-
-                        statusText:
-                            result.statusText
-
-                    });
-
-                }
-
-            } catch (fallbackError) {
-
-                console.log(
-                    "HTTPS fallback failed:",
-                    fallbackError.message
-                );
-
-
-                return res.status(502).json({
-
-                    success: false,
-
-                    message:
-                        "Render server could not connect to the official PCC website.",
-
-                    error:
-                        fallbackError.message,
-
-                    errorName:
-                        fallbackError.name,
-
-                    elapsedMs:
-                        Date.now() -
-                        requestStarted
-
-                });
-
-            }
-
-        }
-
-
-        // ==================================================
-        // CHECK HTML
-        // ==================================================
-
-        if (!html || html.length < 100) {
-
-            return res.status(502).json({
-
-                success: false,
-
-                message:
-                    "Official PCC page returned an empty or incomplete response.",
-
-                htmlLength:
-                    html ? html.length : 0
-
-            });
-
-        }
-
-
-        console.log(
-            "PCC HTML LENGTH:",
-            html.length
-        );
-
-
-        // ==================================================
-        // PARSE
-        // ==================================================
-
-        const data =
-            parsePCC(
-                html,
-                token
-            );
-
-
-        console.log("");
-        console.log("======================================");
-        console.log("PCC PARSED DATA");
-        console.log("======================================");
-        console.log(data);
-        console.log("======================================");
-
-
-        // ==================================================
-        // RETURN
-        // ==================================================
-
-        return res.json({
-
-            success: true,
-
-            data,
-
-            source:
-                "pcc.police.gov.bd",
-
-            finalUrl,
-
-            httpStatus:
-                responseStatus,
-
-            responseStatusText,
-
-            responseLength:
-                html.length,
-
-            elapsedMs:
-                Date.now() -
-                requestStarted
-
-        });
-
-
-    } catch (error) {
-
-        console.log(
-            "Unexpected PCC error:",
-            error
-        );
-
-
-        return res.status(500).json({
-
-            success: false,
-
-            message:
-                "Official PCC page could not be read.",
-
-            error:
-                error.message,
-
-            errorName:
-                error.name,
-
-            cause:
-                error.cause?.message || null
+          message:
+            "PCC URL is required."
 
         });
 
     }
 
+
+    let parsedUrl;
+
+
+    try{
+
+      parsedUrl =
+        new URL(target);
+
+    }catch(error){
+
+      return res
+        .status(400)
+        .json({
+
+          success:false,
+
+          message:
+            "Invalid PCC URL."
+
+        });
+
+    }
+
+
+    if(
+      parsedUrl.hostname !==
+      "pcc.police.gov.bd"
+    ){
+
+      return res
+        .status(403)
+        .json({
+
+          success:false,
+
+          message:
+            "Only official pcc.police.gov.bd URLs are allowed."
+
+        });
+
+    }
+
+
+    const token =
+      parsedUrl.searchParams.get(
+        "P50_TOKEN_ID"
+      );
+
+
+    if(!token){
+
+      return res
+        .status(400)
+        .json({
+
+          success:false,
+
+          message:
+            "P50_TOKEN_ID not found."
+
+        });
+
+    }
+
+
+    const startTime =
+      Date.now();
+
+
+    let html = "";
+    let statusCode = 0;
+    let finalUrl =
+      target;
+
+
+    /* =====================
+       FIRST TRY:
+       NATIVE FETCH
+    ===================== */
+
+    try{
+
+      const controller =
+        new AbortController();
+
+
+      const timeout =
+        setTimeout(
+          () =>
+            controller.abort(),
+          30000
+        );
+
+
+      const response =
+        await fetch(
+          target,
+          {
+            method:"GET",
+
+            headers:{
+
+              "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0 Safari/537.36",
+
+              "Accept":
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+
+              "Accept-Language":
+                "en-US,en;q=0.9",
+
+              "Cache-Control":
+                "no-cache",
+
+              "Pragma":
+                "no-cache"
+            },
+
+            redirect:"follow",
+
+            signal:
+              controller.signal
+          }
+        );
+
+
+      clearTimeout(
+        timeout
+      );
+
+
+      statusCode =
+        response.status;
+
+
+      finalUrl =
+        response.url;
+
+
+      html =
+        await response.text();
+
+
+  }catch(error){
+
+    console.log(
+      "Native fetch failed:",
+      error.message
+    );
+
+
+    /* =====================
+       FALLBACK HTTPS
+    ===================== */
+
+    try{
+
+      const fallback =
+        await fetchPCCWithHttps(
+          target
+        );
+
+
+      statusCode =
+        fallback.statusCode;
+
+
+      finalUrl =
+        fallback.finalUrl;
+
+
+      html =
+        fallback.body;
+
+
+    }catch(fallbackError){
+
+      return res
+        .status(502)
+        .json({
+
+          success:false,
+
+          message:
+            "Render server could not connect to the official PCC website.",
+
+          errorName:
+            fallbackError.name,
+
+          errorCode:
+            fallbackError.code,
+
+          cause:
+            fallbackError.message
+
+        });
+
+    }
+
+  }
+
+
+  if(
+    !html ||
+    html.length < 100
+  ){
+
+    return res
+      .status(502)
+      .json({
+
+        success:false,
+
+        message:
+          "Official PCC website returned empty response.",
+
+        httpStatus:
+          statusCode
+
+      });
+
+  }
+
+
+  const data =
+    parsePCC(
+      html,
+      token
+    );
+
+
+  const elapsedMs =
+    Date.now() -
+    startTime;
+
+
+  return res.json({
+
+    success:true,
+
+    data:data,
+
+    source:
+      "pcc.police.gov.bd",
+
+    finalUrl:
+      finalUrl,
+
+    httpStatus:
+      statusCode,
+
+    responseLength:
+      html.length,
+
+    elapsedMs:
+      elapsedMs
+
+  });
+
 });
 
 
-// ======================================================
-// HEALTH CHECK
-// ======================================================
+/* =========================
+   WAFID OFFICIAL INFO API
+========================= */
 
-app.get("/api/health", (req, res) => {
+/*
+  IMPORTANT:
 
-    res.json({
+  The official Wafid site currently exposes
+  medical status search by Passport Number +
+  Nationality.
 
-        success: true,
+  The public page does not expose a stable,
+  documented JSON API endpoint that can safely
+  be used here.
 
-        message:
-            "PCC Verify Server is running",
+  Therefore this route does NOT fabricate
+  FIT/UNFIT data.
 
-        nodeVersion:
-            process.version,
+  It simply gives the frontend the official
+  Wafid URL.
+*/
 
-        port:
-            PORT
+app.get(
+  "/api/wafid",
+  (req, res) => {
+
+    const passport =
+      String(
+        req.query.passport || ""
+      ).trim();
+
+
+    if(!passport){
+
+      return res
+        .status(400)
+        .json({
+
+          success:false,
+
+          message:
+            "Passport number is required."
+
+        });
+
+    }
+
+
+    return res.json({
+
+      success:true,
+
+      passport:
+        passport,
+
+      nationality:
+        "Bangladesh",
+
+      officialUrl:
+        "https://wafid.com/en/medical-status-search/",
+
+      message:
+        "Use the official Wafid medical status search page to verify the result."
 
     });
 
-});
+  }
+);
 
 
-// ======================================================
-// TEST
-// ======================================================
+/* =========================
+   HEALTH
+========================= */
 
-app.get("/api/test", (req, res) => {
+app.get(
+  "/api/health",
+  (req,res) => {
 
     res.json({
 
-        success: true,
+      success:true,
 
-        message:
-            "PCC Verify API is working",
+      message:
+        "PCC Verify Server is running.",
 
-        serverTime:
-            new Date().toISOString(),
+      nodeVersion:
+        process.version,
 
-        nodeVersion:
-            process.version
+      port:
+        String(PORT)
 
     });
 
-});
+  }
+);
 
 
-// ======================================================
-// START SERVER
-// ======================================================
+/* =========================
+   TEST
+========================= */
 
-app.listen(PORT, () => {
+app.get(
+  "/api/test",
+  (req,res) => {
 
-    console.log("");
-    console.log("======================================");
-    console.log("PCC VERIFY SERVER RUNNING");
-    console.log("======================================");
-    console.log("PORT:", PORT);
-    console.log("Node:", process.version);
-    console.log("======================================");
+    res.json({
 
-});
+      success:true,
+
+      message:
+        "API is working.",
+
+      time:
+        new Date().toISOString()
+
+    });
+
+  }
+);
+
+
+/* =========================
+   START SERVER
+========================= */
+
+app.listen(
+  PORT,
+  () => {
+
+    console.log(
+      `PCC Verify server running on port ${PORT}`
+    );
+
+  }
+);
